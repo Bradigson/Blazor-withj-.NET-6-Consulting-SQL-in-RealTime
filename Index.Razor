@@ -14,38 +14,23 @@
     <input type="text" placeholder="message" @bind="messageInput"/>
 </div>
 
-<div>
-    <button @onclick="Send" disabled="@(!IsConnected)">Send</button>
-</div>
-
 
 <hr/>
-<ul>
+<table class="table">
     @if (DisplayData != null ){
         foreach (var item in DisplayData)
         {
-            <li>
-                @item.UsersMessages
-            </li>
+            <tr>
+                <td>
+                    @item.Users
+                </td>
+                <td>@item.UsersMessages</td>
+                <td></td>
+            </tr>
         }
     }
     
-</ul>
-
-
-
-@*<div>
-    @if(DisplayData != null){
-        foreach(var item in DisplayData){
-            <div>
-                <div>@item.Id</div>
-                <div>@item.Users</div>
-                <div>@item.UsersMessages</div>
-            </div>
-        }
-    }
-</div>*@
-
+</table>
 
 @code{
     private HubConnection _hubconnection;
@@ -67,13 +52,6 @@
         });
         await _hubconnection.StartAsync();
     }
-
-
-
-
-    Task Send() => _hubconnection.SendAsync("EnviarMensaje", userInput, messageInput);
-
-    public bool IsConnected => _hubconnection.State == HubConnectionState.Connected;
 
     public void Dispose(){
         _ = _hubconnection.DisposeAsync();
