@@ -1,0 +1,3 @@
+Warning: el connection string debe de estar en el mismo DbContext;;
+Warning: el paquete a utilizar es using Microsoft.AspNetCore.SignalR;
+tanto en el HUB como en el Hosted class
