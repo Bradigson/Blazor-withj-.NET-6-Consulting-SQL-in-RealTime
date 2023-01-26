@@ -1,0 +1,81 @@
+@page "/"
+@using Microsoft.AspNetCore.SignalR.Client;
+@inject NavigationManager Navigate;
+@implements IDisposable;
+@using AppRealTime.Models;
+@using AppRealTime.Services;
+@inherits OwningComponentBase<ChatServices>
+
+
+<div>
+    <input type="text" placeholder="user name" @bind="userInput"/>
+</div>
+<div>
+    <input type="text" placeholder="message" @bind="messageInput"/>
+</div>
+
+<div>
+    <button @onclick="Send" disabled="@(!IsConnected)">Send</button>
+</div>
+
+
+<hr/>
+<ul>
+    @if (DisplayData != null ){
+        foreach (var item in DisplayData)
+        {
+            <li>
+                @item.UsersMessages
+            </li>
+        }
+    }
+    
+</ul>
+
+
+
+@*<div>
+    @if(DisplayData != null){
+        foreach(var item in DisplayData){
+            <div>
+                <div>@item.Id</div>
+                <div>@item.Users</div>
+                <div>@item.UsersMessages</div>
+            </div>
+        }
+    }
+</div>*@
+
+
+@code{
+    private HubConnection _hubconnection;
+
+    private List<string> AllMessage = new List<string>();
+    private string userInput; 
+    private string messageInput;
+    List<UsersChat> DisplayData;
+
+    protected override async Task OnInitializedAsync(){
+        _hubconnection = new HubConnectionBuilder()
+        .WithUrl(Navigate.ToAbsoluteUri("/SignalR"))
+        .Build();
+
+        _hubconnection.On<List<UsersChat>>("Receive", (data) =>
+        {
+            DisplayData = data;
+            InvokeAsync(() => this.StateHasChanged());
+        });
+        await _hubconnection.StartAsync();
+    }
+
+
+
+
+    Task Send() => _hubconnection.SendAsync("EnviarMensaje", userInput, messageInput);
+
+    public bool IsConnected => _hubconnection.State == HubConnectionState.Connected;
+
+    public void Dispose(){
+        _ = _hubconnection.DisposeAsync();
+    }
+}
