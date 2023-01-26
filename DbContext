@@ -1,0 +1,51 @@
+using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+
+namespace AppRealTime.Models;
+
+public partial class AppRealTimeContext : DbContext
+{
+    public AppRealTimeContext()
+    {
+    }
+
+    public AppRealTimeContext(DbContextOptions<AppRealTimeContext> options)
+        : base(options)
+    {
+    }
+
+    public virtual DbSet<UsersChat> UsersChat { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .AddJsonFile("appsettings.json")
+                .Build();
+            optionsBuilder.UseSqlServer(configuration.GetConnectionString("sqlConnectionString"));
+        }
+    }
+
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<UsersChat>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__UsersCha__3214EC07D2B09E98");
+
+            entity.ToTable("UsersChat");
+
+            entity.Property(e => e.Users)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.UsersMessages).IsUnicode(false);
+        });
+
+        OnModelCreatingPartial(modelBuilder);
+    }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+}
