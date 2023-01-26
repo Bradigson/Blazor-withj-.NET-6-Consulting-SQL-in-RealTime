@@ -1,0 +1,81 @@
+note: estas clases no van en una carpeta
+
+
+
+1- classe del hub
+
+
+using Microsoft.AspNetCore.SignalR;
+
+namespace AppRealTime
+{
+    public class ChatHub : Hub
+    {
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+2-clase HostedService
+
+using AppRealTime.Data;
+using AppRealTime.Models;
+using AppRealTime.SignalR;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AppRealTime
+{
+    public class HostedServicesClass : IHostedService, IDisposable
+    {
+        private readonly IHubContext<ChatHub> _hubContext;
+        private Timer _timer;
+
+        public HostedServicesClass(IHubContext<ChatHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            _timer =
+               new Timer(MapTable, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
+            return Task.CompletedTask;
+        }
+        public void MapTable(object state)
+        {
+
+            IEnumerable<UsersChat> displaydata;
+            using (var _dbcontext = new AppRealTimeContext())
+            {
+                displaydata = _dbcontext.UsersChat.ToList();
+
+                foreach(var item in displaydata)
+                {
+                    System.Diagnostics.Debug.Print(item.Users);
+                }
+            }
+            _hubContext.Clients.All.SendAsync("Receive", displaydata);
+
+        }
+
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            _timer?.Change(Timeout.Infinite, 0);
+            return Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+            _timer?.Dispose();
+        }
+    }
+}
